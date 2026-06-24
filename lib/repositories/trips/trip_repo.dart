@@ -1,67 +1,76 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart' as intl;
+
 import '../../models/trip.dart';
 
-/// Repository thao tác dữ liệu chuyến đi (trip) trên Firestore
 class TripRepo {
-  final auth.User? user = auth.FirebaseAuth.instance.currentUser;
+  TripRepo({FirebaseFirestore? firestore, auth.FirebaseAuth? firebaseAuth})
+    : _firestore = firestore ?? FirebaseFirestore.instance,
+      _firebaseAuth = firebaseAuth ?? auth.FirebaseAuth.instance;
 
-  /// Tạo mới một chuyến đi
+  final FirebaseFirestore _firestore;
+  final auth.FirebaseAuth _firebaseAuth;
+
+  auth.User _currentUser() {
+    final user = _firebaseAuth.currentUser;
+    if (user == null) {
+      throw StateError('User must be signed in to access trips.');
+    }
+    return user;
+  }
+
+  CollectionReference<Map<String, dynamic>> _tripsCollection() {
+    return _firestore
+        .collection('users')
+        .doc(_currentUser().uid)
+        .collection('trips');
+  }
+
   Future<bool> createTrip(Trip trip) async {
     bool isError = false;
     try {
-      await FirebaseFirestore.instance
-          .collection('users').doc(user?.uid).collection('trips').add(
-          trip.toJson());
+      await _tripsCollection().add(trip.toJson());
     } catch (e) {
       isError = true;
-      print('Lỗi khi tạo trip: $e');
+      debugPrint('Error creating trip: $e');
     }
-    return isError; // isError=true nghĩa là có lỗi!
+    return isError;
   }
 
-  /// Cập nhật một chuyến đi đã có (dựa trên tripId)
   Future<bool> updateTrip(Trip trip) async {
     bool isError = false;
-    String? tripDocId;
 
     try {
-      final querySnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user?.uid)
-          .collection('trips')
+      final tripsCollection = _tripsCollection();
+      final querySnapshot = await tripsCollection
           .where('tripId', isEqualTo: trip.tripId)
+          .limit(1)
           .get();
 
-      if (querySnapshot.docs.isEmpty) throw Exception('Không tìm thấy trip!');
+      if (querySnapshot.docs.isEmpty) {
+        throw StateError('Trip not found: ${trip.tripId}');
+      }
 
-      tripDocId = querySnapshot.docs.first.id;
-
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user?.uid)
-          .collection('trips')
-          .doc(tripDocId)
+      await tripsCollection
+          .doc(querySnapshot.docs.first.id)
           .update(trip.toJson());
     } catch (e) {
       isError = true;
-      print('Lỗi khi cập nhật trip: $e');
+      debugPrint('Error updating trip: $e');
     }
 
-    return isError; // true là lỗi, false là thành công!
+    return isError;
   }
 
-  /// Lấy danh sách trip đang diễn ra (chưa kết thúc)
   Future<List<Trip>> onGoingTrips() async {
     final now = DateTime.now();
-    final currentDate =
-    DateTime.parse(intl.DateFormat("yyyy-MM-dd").format(now));
+    final currentDate = DateTime.parse(
+      intl.DateFormat('yyyy-MM-dd').format(now),
+    );
 
-    final query = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user?.uid)
-        .collection('trips')
+    final query = await _tripsCollection()
         .where('endDate', isGreaterThan: currentDate)
         .get();
 
@@ -69,20 +78,17 @@ class TripRepo {
     for (var doc in query.docs) {
       list.add(Trip.fromMap(doc.data()));
     }
-    print('onGoingTrips: ${list.length}');
+    debugPrint('onGoingTrips: ${list.length}');
     return list;
   }
 
-  /// Lấy danh sách trip đã kết thúc
   Future<List<Trip>> pastTrips() async {
     final now = DateTime.now();
-    final currentDate =
-    DateTime.parse(intl.DateFormat("yyyy-MM-dd").format(now));
+    final currentDate = DateTime.parse(
+      intl.DateFormat('yyyy-MM-dd').format(now),
+    );
 
-    final query = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user?.uid)
-        .collection('trips')
+    final query = await _tripsCollection()
         .where('endDate', isLessThan: currentDate)
         .get();
 
@@ -90,36 +96,27 @@ class TripRepo {
     for (var doc in query.docs) {
       list.add(Trip.fromMap(doc.data()));
     }
-    print('pastTrips: ${list.length}');
+    debugPrint('pastTrips: ${list.length}');
     return list;
   }
 
-  /// Lấy chi tiết 1 trip theo tripId
   Future<Trip> getSelectTrip(String tripId) async {
-    final query = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user?.uid)
-        .collection('trips')
+    final query = await _tripsCollection()
         .where('tripId', isEqualTo: tripId)
+        .limit(1)
         .get();
 
-    if (query.docs.isEmpty) throw Exception('Không tìm thấy trip!');
-    return Trip.fromMap(query.docs[0].data());
+    if (query.docs.isEmpty) {
+      throw StateError('Trip not found: $tripId');
+    }
+
+    return Trip.fromMap(query.docs.first.data());
   }
 
-  /// Đếm tổng số trip của user hiện tại
   Future<int> countTotalTrips() async {
-    int count = 0;
-    final result = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user?.uid)
-        .collection('trips')
-        .count()
-        .get();
-    count = result.count ?? 0;
-    return count;
+    final result = await _tripsCollection().count().get();
+    return result.count ?? 0;
   }
 }
 
-// Singleton dùng chung toàn app
 final tripRepo = TripRepo();
