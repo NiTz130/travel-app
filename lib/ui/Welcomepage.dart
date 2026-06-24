@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -30,7 +31,8 @@ class _WelcomePageState extends State<WelcomePage> {
     super.initState();
     userbloc = BlocProvider.of<userBloc>(context);
     mSub = userbloc.stream.listen((state) {
-      if (state is resetPasswordState && state.resetState[0]['isSend'] == true) {
+      if (state is resetPasswordState &&
+          state.resetState[0]['isSend'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Đã gửi email đặt lại mật khẩu!")),
         );
@@ -116,7 +118,10 @@ class _WelcomePageState extends State<WelcomePage> {
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(17),
                                 ),
-                                margin: const EdgeInsets.only(left: 50.0, bottom: 12),
+                                margin: const EdgeInsets.only(
+                                  left: 50.0,
+                                  bottom: 12,
+                                ),
                                 child: Center(
                                   child: Text(
                                     "Email không hợp lệ hoặc không tồn tại!",
@@ -129,7 +134,7 @@ class _WelcomePageState extends State<WelcomePage> {
                                     ),
                                   ),
                                 ),
-                              )
+                              ),
                             ],
                           ),
                         ),
@@ -178,7 +183,9 @@ class _WelcomePageState extends State<WelcomePage> {
                               height: 400,
                               decoration: const BoxDecoration(
                                 image: DecorationImage(
-                                  image: AssetImage('assets/images/Rectangle 1.png'),
+                                  image: AssetImage(
+                                    'assets/images/Rectangle 1.png',
+                                  ),
                                   fit: BoxFit.cover,
                                 ),
                               ),
@@ -190,7 +197,10 @@ class _WelcomePageState extends State<WelcomePage> {
                                     Row(
                                       children: [
                                         Padding(
-                                          padding: const EdgeInsets.only(left: 12.0, top: 12.0),
+                                          padding: const EdgeInsets.only(
+                                            left: 12.0,
+                                            top: 12.0,
+                                          ),
                                           child: SizedBox(
                                             width: 250,
                                             height: isEmailEmpty ? 60 : 40,
@@ -204,11 +214,19 @@ class _WelcomePageState extends State<WelcomePage> {
                                                 filled: true,
                                                 fillColor: Colors.white,
                                                 hintText: 'Email',
-                                                errorText: isEmailEmpty ? "Không được bỏ trống" : null,
-                                                border: const OutlineInputBorder(
-                                                  borderSide: BorderSide.none,
-                                                ),
-                                                contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                                                errorText: isEmailEmpty
+                                                    ? "Không được bỏ trống"
+                                                    : null,
+                                                border:
+                                                    const OutlineInputBorder(
+                                                      borderSide:
+                                                          BorderSide.none,
+                                                    ),
+                                                contentPadding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 16.0,
+                                                      vertical: 12.0,
+                                                    ),
                                               ),
                                               controller: emailController,
                                             ),
@@ -220,15 +238,24 @@ class _WelcomePageState extends State<WelcomePage> {
                                     Row(
                                       children: [
                                         Padding(
-                                          padding: const EdgeInsets.only(left: 12.0, top: 12.0),
+                                          padding: const EdgeInsets.only(
+                                            left: 12.0,
+                                            top: 12.0,
+                                          ),
                                           child: SizedBox(
                                             width: 250,
                                             height: 40,
                                             child: TextButton(
                                               onPressed: () async {
-                                                if (emailController.text.isNotEmpty) {
-                                                  BlocProvider.of<userBloc>(context).add(
-                                                    readUserEmailEvent(emailController.text),
+                                                if (emailController
+                                                    .text
+                                                    .isNotEmpty) {
+                                                  BlocProvider.of<userBloc>(
+                                                    context,
+                                                  ).add(
+                                                    readUserEmailEvent(
+                                                      emailController.text,
+                                                    ),
                                                   );
                                                 } else {
                                                   setState(() {
@@ -237,8 +264,21 @@ class _WelcomePageState extends State<WelcomePage> {
                                                 }
                                               },
                                               style: ButtonStyle(
-                                                backgroundColor: MaterialStateProperty.all<Color>(const Color.fromARGB(255, 10, 124, 132)),
-                                                foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                                                backgroundColor:
+                                                    MaterialStateProperty.all<
+                                                      Color
+                                                    >(
+                                                      const Color.fromARGB(
+                                                        255,
+                                                        10,
+                                                        124,
+                                                        132,
+                                                      ),
+                                                    ),
+                                                foregroundColor:
+                                                    MaterialStateProperty.all<
+                                                      Color
+                                                    >(Colors.white),
                                               ),
                                               child: Text(
                                                 'Tiếp tục',
@@ -256,7 +296,10 @@ class _WelcomePageState extends State<WelcomePage> {
                                     Row(
                                       children: [
                                         Container(
-                                          margin: const EdgeInsets.only(left: 123.0, top: 15.0),
+                                          margin: const EdgeInsets.only(
+                                            left: 123.0,
+                                            top: 15.0,
+                                          ),
                                           child: Text(
                                             "Hoặc",
                                             style: GoogleFonts.roboto(
@@ -274,22 +317,43 @@ class _WelcomePageState extends State<WelcomePage> {
                                     Row(
                                       children: [
                                         Padding(
-                                          padding: const EdgeInsets.only(left: 12.0, top: 12.0),
+                                          padding: const EdgeInsets.only(
+                                            left: 12.0,
+                                            top: 12.0,
+                                          ),
                                           child: SizedBox(
                                             width: 250,
                                             height: 40,
                                             child: TextButton(
                                               onPressed: () {},
                                               style: ButtonStyle(
-                                                backgroundColor: MaterialStateProperty.all<Color>(const Color.fromARGB(255, 231, 231, 231)),
-                                                foregroundColor: MaterialStateProperty.all<Color>(Colors.black),
+                                                backgroundColor:
+                                                    MaterialStateProperty.all<
+                                                      Color
+                                                    >(
+                                                      const Color.fromARGB(
+                                                        255,
+                                                        231,
+                                                        231,
+                                                        231,
+                                                      ),
+                                                    ),
+                                                foregroundColor:
+                                                    MaterialStateProperty.all<
+                                                      Color
+                                                    >(Colors.black),
                                               ),
                                               child: Padding(
-                                                padding: const EdgeInsets.only(left: 17.0),
+                                                padding: const EdgeInsets.only(
+                                                  left: 17.0,
+                                                ),
                                                 child: Row(
                                                   children: [
                                                     Padding(
-                                                      padding: const EdgeInsets.only(right: 8.0),
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                            right: 8.0,
+                                                          ),
                                                       child: Image.asset(
                                                         "assets/images/facebook-logo.png",
                                                         width: 24,
@@ -299,11 +363,15 @@ class _WelcomePageState extends State<WelcomePage> {
                                                     Text(
                                                       "Tiếp tục với Facebook",
                                                       style: GoogleFonts.roboto(
-                                                        textStyle: const TextStyle(
-                                                          color: Colors.black,
-                                                          fontSize: 14,
-                                                          fontWeight: FontWeight.bold,
-                                                        ),
+                                                        textStyle:
+                                                            const TextStyle(
+                                                              color:
+                                                                  Colors.black,
+                                                              fontSize: 14,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                            ),
                                                       ),
                                                     ),
                                                   ],
@@ -318,24 +386,59 @@ class _WelcomePageState extends State<WelcomePage> {
                                     Row(
                                       children: [
                                         Padding(
-                                          padding: const EdgeInsets.only(left: 12.0, top: 12.0),
+                                          padding: const EdgeInsets.only(
+                                            left: 12.0,
+                                            top: 12.0,
+                                          ),
                                           child: SizedBox(
                                             width: 250,
                                             height: 40,
                                             child: TextButton(
                                               onPressed: () {
-                                                BlocProvider.of<userBloc>(context).add(signInWithGoogle());
+                                                if (kDebugMode) {
+                                                  ScaffoldMessenger.of(
+                                                    context,
+                                                  ).showSnackBar(
+                                                    const SnackBar(
+                                                      content: Text(
+                                                        'Google Sign-In đang tắt trong chế độ dev emulator.',
+                                                      ),
+                                                    ),
+                                                  );
+                                                  return;
+                                                }
+                                                BlocProvider.of<userBloc>(
+                                                  context,
+                                                ).add(signInWithGoogle());
                                               },
                                               style: ButtonStyle(
-                                                backgroundColor: MaterialStateProperty.all<Color>(const Color.fromARGB(255, 231, 231, 231)),
-                                                foregroundColor: MaterialStateProperty.all<Color>(Colors.black),
+                                                backgroundColor:
+                                                    MaterialStateProperty.all<
+                                                      Color
+                                                    >(
+                                                      const Color.fromARGB(
+                                                        255,
+                                                        231,
+                                                        231,
+                                                        231,
+                                                      ),
+                                                    ),
+                                                foregroundColor:
+                                                    MaterialStateProperty.all<
+                                                      Color
+                                                    >(Colors.black),
                                               ),
                                               child: Padding(
-                                                padding: const EdgeInsets.only(left: 17.0),
+                                                padding: const EdgeInsets.only(
+                                                  left: 17.0,
+                                                ),
                                                 child: Row(
                                                   children: [
                                                     Padding(
-                                                      padding: const EdgeInsets.only(right: 8.0),
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                            right: 8.0,
+                                                          ),
                                                       child: Image.asset(
                                                         "assets/images/google-logo.png",
                                                         width: 24,
@@ -345,11 +448,15 @@ class _WelcomePageState extends State<WelcomePage> {
                                                     Text(
                                                       "Tiếp tục với Google",
                                                       style: GoogleFonts.roboto(
-                                                        textStyle: const TextStyle(
-                                                          color: Colors.black,
-                                                          fontSize: 14,
-                                                          fontWeight: FontWeight.bold,
-                                                        ),
+                                                        textStyle:
+                                                            const TextStyle(
+                                                              color:
+                                                                  Colors.black,
+                                                              fontSize: 14,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                            ),
                                                       ),
                                                     ),
                                                   ],
@@ -362,7 +469,9 @@ class _WelcomePageState extends State<WelcomePage> {
                                     ),
                                     // Đăng ký tài khoản mới
                                     Padding(
-                                      padding: const EdgeInsets.only(left: 12.0),
+                                      padding: const EdgeInsets.only(
+                                        left: 12.0,
+                                      ),
                                       child: Row(
                                         children: [
                                           Text(
@@ -373,19 +482,30 @@ class _WelcomePageState extends State<WelcomePage> {
                                           ),
                                           TextButton(
                                             onPressed: () {
-                                              Navigator.of(context).pushReplacement(
+                                              Navigator.of(
+                                                context,
+                                              ).pushReplacement(
                                                 MaterialPageRoute(
-                                                  builder: (context) => const SignupPage(),
+                                                  builder: (context) =>
+                                                      const SignupPage(),
                                                 ),
                                               );
                                             },
                                             style: ButtonStyle(
-                                              padding: MaterialStateProperty.all<EdgeInsets>(EdgeInsets.zero),
+                                              padding:
+                                                  MaterialStateProperty.all<
+                                                    EdgeInsets
+                                                  >(EdgeInsets.zero),
                                             ),
                                             child: Text(
                                               "Đăng ký",
                                               style: GoogleFonts.roboto(
-                                                color: const Color.fromARGB(255, 27, 199, 211),
+                                                color: const Color.fromARGB(
+                                                  255,
+                                                  27,
+                                                  199,
+                                                  211,
+                                                ),
                                               ),
                                             ),
                                           ),
@@ -396,22 +516,33 @@ class _WelcomePageState extends State<WelcomePage> {
                                     Row(
                                       children: [
                                         Padding(
-                                          padding: const EdgeInsets.only(left: 12.0),
+                                          padding: const EdgeInsets.only(
+                                            left: 12.0,
+                                          ),
                                           child: TextButton(
                                             onPressed: () {
                                               Navigator.of(context).push(
                                                 MaterialPageRoute(
-                                                  builder: (_) => ResetPasswordPage(),
+                                                  builder: (_) =>
+                                                      ResetPasswordPage(),
                                                 ),
                                               );
                                             },
                                             style: ButtonStyle(
-                                              padding: MaterialStateProperty.all<EdgeInsets>(EdgeInsets.zero),
+                                              padding:
+                                                  MaterialStateProperty.all<
+                                                    EdgeInsets
+                                                  >(EdgeInsets.zero),
                                             ),
                                             child: Text(
                                               "Quên mật khẩu?",
                                               style: GoogleFonts.roboto(
-                                                color: const Color.fromARGB(255, 27, 199, 211),
+                                                color: const Color.fromARGB(
+                                                  255,
+                                                  27,
+                                                  199,
+                                                  211,
+                                                ),
                                               ),
                                             ),
                                           ),

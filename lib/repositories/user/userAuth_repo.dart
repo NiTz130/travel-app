@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../models/user.dart';
 
@@ -8,14 +9,19 @@ class UserAuthRepo {
   final auth.FirebaseAuth _firebaseAuth;
 
   UserAuthRepo({auth.FirebaseAuth? firebaseAuth})
-      : _firebaseAuth = firebaseAuth ?? auth.FirebaseAuth.instance;
+    : _firebaseAuth = firebaseAuth ?? auth.FirebaseAuth.instance;
 
   /// Stream theo dõi trạng thái user thay đổi (VD: đăng nhập, đăng xuất)
   Stream<auth.User?> get onUserStateChanged => _firebaseAuth.userChanges();
   Stream<auth.User?> get onAuthStateChanged => _firebaseAuth.authStateChanges();
 
   /// Đăng ký tài khoản mới bằng email/password
-  Future<List> signUp(String email, String userName, String password, String proPic) async {
+  Future<List> signUp(
+    String email,
+    String userName,
+    String password,
+    String proPic,
+  ) async {
     String authException = '';
     List signUpDetails = [];
     late auth.UserCredential userCredential;
@@ -26,13 +32,13 @@ class UserAuthRepo {
       );
       authException = 'successful';
       signUpDetails = [
-        {'user': userCredential.user, 'authException': authException}
+        {'user': userCredential.user, 'authException': authException},
       ];
       await createUser(
-          userCredential.user!.uid,
-          userCredential.user!.email ?? "",
-          userName,
-          proPic
+        userCredential.user!.uid,
+        userCredential.user!.email ?? "",
+        userName,
+        proPic,
       );
     } on auth.FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
@@ -63,7 +69,7 @@ class UserAuthRepo {
       userDetails = User.fromMap(querySnapshot.docs.first.data());
     }
     userState = [
-      {'isFound': isFound, 'userDetails': userDetails}
+      {'isFound': isFound, 'userDetails': userDetails},
     ];
     return userState;
   }
@@ -75,7 +81,9 @@ class UserAuthRepo {
     List signInDetails = [];
     try {
       await _firebaseAuth.signInWithEmailAndPassword(
-          email: email, password: password);
+        email: email,
+        password: password,
+      );
     } on auth.FirebaseAuthException catch (e) {
       isSignIn = false;
       if (e.code == 'user-not-found') {
@@ -87,7 +95,7 @@ class UserAuthRepo {
       }
     }
     signInDetails = [
-      {'isSignIn': isSignIn, 'authException': authException}
+      {'isSignIn': isSignIn, 'authException': authException},
     ];
     return signInDetails;
   }
@@ -114,7 +122,7 @@ class UserAuthRepo {
       }
     }
     resetDetails = [
-      {'isSend': isSend, 'authException': authException}
+      {'isSend': isSend, 'authException': authException},
     ];
     return resetDetails;
   }
@@ -145,10 +153,15 @@ class UserAuthRepo {
 
   /// Đăng nhập với Google
   Future<dynamic> signInWithGoogle() async {
+    if (kDebugMode) {
+      debugPrint('Google Sign-In is disabled for Firebase Emulator dev.');
+      return null;
+    }
+
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
       final GoogleSignInAuthentication? googleAuth =
-      await googleUser?.authentication;
+          await googleUser?.authentication;
 
       final credential = auth.GoogleAuthProvider.credential(
         accessToken: googleAuth?.accessToken,
@@ -172,7 +185,12 @@ class UserAuthRepo {
   }
 
   /// Tạo mới document người dùng khi đăng ký thành công
-  Future<void> createUser(String uid, String email, String userName, String proPic) async {
+  Future<void> createUser(
+    String uid,
+    String email,
+    String userName,
+    String proPic,
+  ) async {
     await FirebaseFirestore.instance.collection('users').doc(uid).set({
       'uid': uid,
       'displayName': userName,
