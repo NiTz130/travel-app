@@ -27,4 +27,57 @@ void main() {
       '192.168.1.50',
     );
   });
+
+  test('override host is trimmed', () {
+    expect(
+      firebaseEmulatorHostFor(
+        platform: TargetPlatform.android,
+        isWeb: false,
+        overrideHost: '  192.168.1.50  ',
+      ),
+      '192.168.1.50',
+    );
+  });
+
+  test('blank override falls back to platform default', () {
+    expect(
+      firebaseEmulatorHostFor(
+        platform: TargetPlatform.android,
+        isWeb: false,
+        overrideHost: '   ',
+      ),
+      '10.0.2.2',
+    );
+  });
+
+  test('uses localhost for web targets', () {
+    expect(
+      firebaseEmulatorHostFor(platform: TargetPlatform.android, isWeb: true),
+      'localhost',
+    );
+  });
+
+  group('emulator configuration idempotency', () {
+    tearDown(debugResetFirebaseEmulatorConfiguration);
+
+    test('allows first configuration attempt', () {
+      expect(shouldConfigureFirebaseEmulatorsForHost('localhost'), isTrue);
+    });
+
+    test('skips repeated configuration for the same host', () {
+      expect(shouldConfigureFirebaseEmulatorsForHost('localhost'), isTrue);
+      debugMarkFirebaseEmulatorsConfiguredForHost('localhost');
+
+      expect(shouldConfigureFirebaseEmulatorsForHost('localhost'), isFalse);
+    });
+
+    test('rejects repeated configuration for a different host', () {
+      debugMarkFirebaseEmulatorsConfiguredForHost('localhost');
+
+      expect(
+        () => shouldConfigureFirebaseEmulatorsForHost('10.0.2.2'),
+        throwsStateError,
+      );
+    });
+  });
 }

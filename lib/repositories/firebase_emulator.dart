@@ -7,6 +7,8 @@ const int firebaseAuthEmulatorPort = 9099;
 const int firestoreEmulatorPort = 8080;
 const int firebaseDatabaseEmulatorPort = 9000;
 
+String? _configuredFirebaseEmulatorHost;
+
 String firebaseEmulatorHostFor({
   TargetPlatform? platform,
   bool? isWeb,
@@ -25,6 +27,33 @@ String firebaseEmulatorHostFor({
   return resolvedPlatform == TargetPlatform.android ? '10.0.2.2' : 'localhost';
 }
 
+@visibleForTesting
+bool shouldConfigureFirebaseEmulatorsForHost(String emulatorHost) {
+  final configuredHost = _configuredFirebaseEmulatorHost;
+  if (configuredHost == null) {
+    return true;
+  }
+
+  if (configuredHost == emulatorHost) {
+    return false;
+  }
+
+  throw StateError(
+    'Firebase emulators are already configured for $configuredHost; '
+    'cannot reconfigure for $emulatorHost.',
+  );
+}
+
+@visibleForTesting
+void debugResetFirebaseEmulatorConfiguration() {
+  _configuredFirebaseEmulatorHost = null;
+}
+
+@visibleForTesting
+void debugMarkFirebaseEmulatorsConfiguredForHost(String emulatorHost) {
+  _configuredFirebaseEmulatorHost = emulatorHost;
+}
+
 Future<void> configureFirebaseEmulators({
   String? host,
   bool force = false,
@@ -34,6 +63,10 @@ Future<void> configureFirebaseEmulators({
   }
 
   final emulatorHost = firebaseEmulatorHostFor(overrideHost: host);
+  if (!shouldConfigureFirebaseEmulatorsForHost(emulatorHost)) {
+    return;
+  }
+
   await FirebaseAuth.instance.useAuthEmulator(
     emulatorHost,
     firebaseAuthEmulatorPort,
@@ -46,4 +79,5 @@ Future<void> configureFirebaseEmulators({
     emulatorHost,
     firebaseDatabaseEmulatorPort,
   );
+  _configuredFirebaseEmulatorHost = emulatorHost;
 }
