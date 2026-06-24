@@ -3,15 +3,17 @@
 # Files and directories created by pub
 .dart_tool/
 .packages
+.pub-cache/
+.pub/
 build/
 # If you're building an application, you may want to check-in your pubspec.lock
-pubspec.lock
 
 # Directory created by dartdoc
 # If you don't generate documentation locally you can remove this line.
 doc/api/
 
 # dotenv environment variables file
+.env
 .env*
 
 # Avoid committing generated Javascript files:
@@ -28,3 +30,8 @@ doc/api/
 .flutter-plugins
 .flutter-plugins-dependencies
 .worktrees
+android/.gradle/
+android/local.properties
+android/app/google-services.json
+firebase-emulator-data/
+.idea/
