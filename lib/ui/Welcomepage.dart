@@ -291,7 +291,7 @@ class _WelcomePageState extends State<WelcomePage> {
                                                     Padding(
                                                       padding: const EdgeInsets.only(right: 8.0),
                                                       child: Image.asset(
-                                                        "assets/images/Facebook_Logo_(2019).png.webp",
+                                                        "assets/images/facebook-logo.png",
                                                         width: 24,
                                                         height: 24,
                                                       ),
@@ -337,7 +337,7 @@ class _WelcomePageState extends State<WelcomePage> {
                                                     Padding(
                                                       padding: const EdgeInsets.only(right: 8.0),
                                                       child: Image.asset(
-                                                        "assets/images/google-logo-png-webinar-optimizing-for-success-google-business-webinar-13.png",
+                                                        "assets/images/google-logo.png",
                                                         width: 24,
                                                         height: 24,
                                                       ),
