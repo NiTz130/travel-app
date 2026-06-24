@@ -29,6 +29,7 @@ doc/api/
 
 .flutter-plugins
 .flutter-plugins-dependencies
+*.iml
 .worktrees
 android/.gradle/
 android/local.properties
