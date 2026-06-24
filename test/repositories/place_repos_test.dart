@@ -97,6 +97,95 @@ void main() {
   );
 
   test(
+    'attractionListRepo.addReview writes the same userIds to duplicate place docs',
+    () async {
+      final firestore = FakeFirebaseFirestore();
+      final repo = attractionListRepo(firestore: firestore);
+      final firstDocRef = firestore.collection('attractions').doc('first-doc');
+      final secondDocRef = firestore
+          .collection('attractions')
+          .doc('second-doc');
+
+      await firstDocRef.set(
+        placeData(placeId: 'duplicate-attraction', userIds: ['stale-user']),
+      );
+      await secondDocRef.set(
+        placeData(placeId: 'duplicate-attraction', userIds: ['other-user']),
+      );
+
+      final reviews = [
+        reviewData(reviewId: 'review-1', userId: 'user-1', text: 'Great'),
+        reviewData(reviewId: 'review-2', userId: 'user-2', text: 'Nice'),
+        reviewData(reviewId: 'review-3', userId: 'user-1', text: 'Again'),
+      ];
+
+      await repo.addReview(
+        placeId: 'duplicate-attraction',
+        reviews: reviews,
+        userId: 'user-2',
+      );
+
+      final firstDoc = await firstDocRef.get();
+      final secondDoc = await secondDocRef.get();
+      expect(firstDoc.data()?['reviews'], reviews);
+      expect(secondDoc.data()?['reviews'], reviews);
+      expect(firstDoc.data()?['userIds'], ['user-1', 'user-2']);
+      expect(secondDoc.data()?['userIds'], ['user-1', 'user-2']);
+    },
+  );
+
+  test(
+    'attractionListRepo.deleteReview writes the same userIds to duplicate place docs',
+    () async {
+      final firestore = FakeFirebaseFirestore();
+      final repo = attractionListRepo(firestore: firestore);
+      final firstDocRef = firestore.collection('attractions').doc('first-doc');
+      final secondDocRef = firestore
+          .collection('attractions')
+          .doc('second-doc');
+
+      final remainingReviews = [
+        reviewData(reviewId: 'review-2', userId: 'user-2', text: 'Keep me'),
+      ];
+
+      await firstDocRef.set(
+        placeData(
+          placeId: 'duplicate-attraction',
+          reviews: [
+            reviewData(
+              reviewId: 'review-1',
+              userId: 'user-1',
+              text: 'Remove me',
+            ),
+            ...remainingReviews,
+          ],
+          userIds: ['user-1', 'user-2'],
+        ),
+      );
+      await secondDocRef.set(
+        placeData(
+          placeId: 'duplicate-attraction',
+          reviews: remainingReviews,
+          userIds: ['stale-user'],
+        ),
+      );
+
+      await repo.deleteReview(
+        placeId: 'duplicate-attraction',
+        reviews: remainingReviews,
+        userId: 'user-1',
+      );
+
+      final firstDoc = await firstDocRef.get();
+      final secondDoc = await secondDocRef.get();
+      expect(firstDoc.data()?['reviews'], remainingReviews);
+      expect(secondDoc.data()?['reviews'], remainingReviews);
+      expect(firstDoc.data()?['userIds'], ['user-2']);
+      expect(secondDoc.data()?['userIds'], ['user-2']);
+    },
+  );
+
+  test(
     'RestaurantsRepo.addReview updates parent reviews and mirrors subcollection',
     () async {
       final firestore = FakeFirebaseFirestore();
@@ -141,6 +230,43 @@ void main() {
       expect(
         (await docRef.collection('reviews').doc('stale-review').get()).exists,
         isFalse,
+      );
+    },
+  );
+
+  test(
+    'RestaurantsRepo.getReviews dedupes duplicate parent docs by reviewId',
+    () async {
+      final firestore = FakeFirebaseFirestore();
+      final repo = RestaurantsRepo(firestore: firestore);
+      final firstDocRef = firestore.collection('restaurants').doc('first-doc');
+      final secondDocRef = firestore
+          .collection('restaurants')
+          .doc('second-doc');
+
+      await firstDocRef.set(placeData(placeId: 'duplicate-restaurant'));
+      await secondDocRef.set(placeData(placeId: 'duplicate-restaurant'));
+
+      final reviews = [
+        reviewData(reviewId: 'review-1', userId: 'user-1', text: 'Great'),
+        reviewData(reviewId: 'review-2', userId: 'user-2', text: 'Excellent'),
+      ];
+
+      for (final docRef in [firstDocRef, secondDocRef]) {
+        for (final review in reviews) {
+          await docRef
+              .collection('reviews')
+              .doc(review['reviewId'] as String)
+              .set(review);
+        }
+      }
+
+      final savedReviews = await repo.getReviews('duplicate-restaurant');
+
+      expect(savedReviews, hasLength(2));
+      expect(
+        savedReviews.map((review) => review.reviewId),
+        unorderedEquals(['review-1', 'review-2']),
       );
     },
   );

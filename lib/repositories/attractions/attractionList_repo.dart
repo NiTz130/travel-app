@@ -86,6 +86,8 @@ class attractionListRepo {
     required List reviews,
     required String userId,
   }) async {
+    final userIds = _reviewUserIds(reviews);
+
     try {
       QuerySnapshot attractionsQuery = await _firestore
           .collection('attractions')
@@ -93,12 +95,6 @@ class attractionListRepo {
           .get();
 
       for (var ele in attractionsQuery.docs) {
-        final data = ele.data() as Map<String, dynamic>;
-        final userIds = List.from(data['userIds'] as List? ?? []);
-        if (!userIds.contains(userId)) {
-          userIds.add(userId);
-        }
-
         await ele.reference.update({'reviews': reviews, 'userIds': userIds});
       }
     } catch (e) {
@@ -112,9 +108,7 @@ class attractionListRepo {
     required List reviews,
     required String userId,
   }) async {
-    final hasRemainingReview = reviews.any((review) {
-      return _reviewUserId(review) == userId;
-    });
+    final userIds = _reviewUserIds(reviews);
 
     try {
       QuerySnapshot attractionsQuery = await _firestore
@@ -123,12 +117,6 @@ class attractionListRepo {
           .get();
 
       for (var ele in attractionsQuery.docs) {
-        final data = ele.data() as Map<String, dynamic>;
-        final userIds = List.from(data['userIds'] as List? ?? []);
-        if (!hasRemainingReview) {
-          userIds.removeWhere((element) => element == userId);
-        }
-
         await ele.reference.update({'reviews': reviews, 'userIds': userIds});
       }
     } catch (e) {
@@ -145,6 +133,17 @@ class attractionListRepo {
       return userId is String ? userId : userId?.toString();
     }
     return null;
+  }
+
+  List<String> _reviewUserIds(List reviews) {
+    final userIds = <String>[];
+    for (final review in reviews) {
+      final userId = _reviewUserId(review);
+      if (userId != null && userId.isNotEmpty && !userIds.contains(userId)) {
+        userIds.add(userId);
+      }
+    }
+    return userIds;
   }
 }
 

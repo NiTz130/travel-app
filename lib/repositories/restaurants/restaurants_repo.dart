@@ -61,6 +61,7 @@ class RestaurantsRepo {
 
   Future<List<Review>> getReviews(placeId) async {
     final List<Review> reviewsList = [];
+    final reviewIds = <String>{};
     try {
       final querySnapshot = await _firestore
           .collection('restaurants')
@@ -71,7 +72,12 @@ class RestaurantsRepo {
       for (var ele in querySnapshot.docs) {
         final result = await ele.reference.collection('reviews').get();
         for (var reviewDoc in result.docs) {
-          reviewsList.add(Review.fromMap(reviewDoc.data()));
+          final review = reviewDoc.data();
+          final reviewId = _reviewId(review);
+          if (reviewId != null && !reviewIds.add(reviewId)) {
+            continue;
+          }
+          reviewsList.add(Review.fromMap(review));
         }
       }
     } catch (e) {
