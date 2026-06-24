@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
@@ -29,7 +28,7 @@ class _myAccountState extends State<myAccount> {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => WelcomePage()),
-              (route) => false,
+          (route) => false,
         );
       }
     });
@@ -84,7 +83,8 @@ class _myAccountState extends State<myAccount> {
                             backgroundImage: snapshot.data?.photoURL != null
                                 ? NetworkImage("${snapshot.data?.photoURL}")
                                 : const NetworkImage(
-                                "https://cdn-icons-png.flaticon.com/64/3177/3177440.png"),
+                                    "https://cdn-icons-png.flaticon.com/64/3177/3177440.png",
+                                  ),
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -115,7 +115,11 @@ class _myAccountState extends State<myAccount> {
                             ],
                           ),
                         ),
-                        const Icon(Icons.arrow_forward_ios, size: 18, color: Colors.grey),
+                        const Icon(
+                          Icons.arrow_forward_ios,
+                          size: 18,
+                          color: Colors.grey,
+                        ),
                       ],
                     ),
                   ),

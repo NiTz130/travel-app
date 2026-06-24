@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -29,7 +28,10 @@ class _emailVerificationPageState extends State<emailVerificationPage> {
     super.initState();
 
     BlocProvider.of<userBloc>(context).add(emailVerification());
-    timer = Timer.periodic(const Duration(seconds: 3), (_) => checkEmailVerified());
+    timer = Timer.periodic(
+      const Duration(seconds: 3),
+      (_) => checkEmailVerified(),
+    );
   }
 
   checkEmailVerified() async {
@@ -77,7 +79,8 @@ class _emailVerificationPageState extends State<emailVerificationPage> {
                             iconSize: 40,
                             onPressed: () {
                               Navigator.of(context).pushReplacement(
-                                  customPageRoutes(child: const WelcomePage()));
+                                customPageRoutes(child: const WelcomePage()),
+                              );
                             },
                           ),
                         ),
@@ -98,7 +101,7 @@ class _emailVerificationPageState extends State<emailVerificationPage> {
                               ),
                             ),
                           ),
-                        )
+                        ),
                       ],
                     ),
                     // Nội dung xác thực
@@ -112,7 +115,9 @@ class _emailVerificationPageState extends State<emailVerificationPage> {
                             margin: const EdgeInsets.only(left: 0.0),
                             decoration: const BoxDecoration(
                               image: DecorationImage(
-                                image: AssetImage('assets/images/Rectangle 1 loging.png'),
+                                image: AssetImage(
+                                  'assets/images/Rectangle 1 loging.png',
+                                ),
                               ),
                             ),
                             alignment: Alignment.center,
@@ -121,12 +126,20 @@ class _emailVerificationPageState extends State<emailVerificationPage> {
                                 Row(
                                   children: [
                                     Padding(
-                                      padding: const EdgeInsets.only(top: 60.0, left: 60),
+                                      padding: const EdgeInsets.only(
+                                        top: 60.0,
+                                        left: 60,
+                                      ),
                                       child: Container(
                                         child: Text(
                                           "Chúng tôi đã gửi email xác thực đến \n${user?.email}",
                                           style: GoogleFonts.roboto(
-                                            color: Color.fromARGB(255, 255, 255, 255),
+                                            color: Color.fromARGB(
+                                              255,
+                                              255,
+                                              255,
+                                              255,
+                                            ),
                                           ),
                                           maxLines: 2,
                                           textAlign: TextAlign.center,
@@ -138,12 +151,21 @@ class _emailVerificationPageState extends State<emailVerificationPage> {
                                 Row(
                                   children: [
                                     Padding(
-                                      padding: const EdgeInsets.only(left: 125, top: 20),
+                                      padding: const EdgeInsets.only(
+                                        left: 125,
+                                        top: 20,
+                                      ),
                                       child: Center(
-                                        child: LoadingAnimationWidget.hexagonDots(
-                                          color: Color.fromARGB(255, 255, 255, 255),
-                                          size: 35,
-                                        ),
+                                        child:
+                                            LoadingAnimationWidget.hexagonDots(
+                                              color: Color.fromARGB(
+                                                255,
+                                                255,
+                                                255,
+                                                255,
+                                              ),
+                                              size: 35,
+                                            ),
                                       ),
                                     ),
                                   ],
@@ -152,20 +174,35 @@ class _emailVerificationPageState extends State<emailVerificationPage> {
                                 Row(
                                   children: [
                                     Padding(
-                                      padding: const EdgeInsets.only(left: 25, top: 24),
+                                      padding: const EdgeInsets.only(
+                                        left: 25,
+                                        top: 24,
+                                      ),
                                       child: Container(
                                         width: 250,
                                         height: 40,
                                         child: TextButton(
                                           onPressed: () async {
-                                            BlocProvider.of<userBloc>(context)
-                                                .add(emailVerification());
+                                            BlocProvider.of<userBloc>(
+                                              context,
+                                            ).add(emailVerification());
                                           },
                                           style: ButtonStyle(
-                                            backgroundColor: MaterialStateProperty.all<Color>(
-                                                const Color.fromARGB(255, 10, 124, 132)),
-                                            foregroundColor: MaterialStateProperty.all<Color>(
-                                                Colors.white),
+                                            backgroundColor:
+                                                MaterialStateProperty.all<
+                                                  Color
+                                                >(
+                                                  const Color.fromARGB(
+                                                    255,
+                                                    10,
+                                                    124,
+                                                    132,
+                                                  ),
+                                                ),
+                                            foregroundColor:
+                                                MaterialStateProperty.all<
+                                                  Color
+                                                >(Colors.white),
                                           ),
                                           child: Text(
                                             'GỬI LẠI EMAIL',
@@ -182,9 +219,9 @@ class _emailVerificationPageState extends State<emailVerificationPage> {
                               ],
                             ),
                           ),
-                        )
+                        ),
                       ],
-                    )
+                    ),
                   ],
                 ),
               ),
