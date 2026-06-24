@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:travel_app/repositories/firebase_emulator.dart';
+import 'package:travel_app/repositories/firebase_options.dart';
 
 void main() {
   test('uses Android emulator loopback host for Android', () {
@@ -76,6 +77,22 @@ void main() {
 
       expect(
         () => shouldConfigureFirebaseEmulatorsForHost('10.0.2.2'),
+        throwsStateError,
+      );
+    });
+  });
+
+  group('dev Firebase options guard', () {
+    test('allows dev Firebase options outside release mode', () {
+      expect(
+        () => ensureDevFirebaseOptionsAllowed(releaseMode: false),
+        returnsNormally,
+      );
+    });
+
+    test('blocks dev Firebase options in release mode', () {
+      expect(
+        () => ensureDevFirebaseOptionsAllowed(releaseMode: true),
         throwsStateError,
       );
     });

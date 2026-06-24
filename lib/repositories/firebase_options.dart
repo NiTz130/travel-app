@@ -1,7 +1,16 @@
 // Dev-only Firebase options for Firebase Emulator recovery.
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
-    show TargetPlatform, defaultTargetPlatform, kIsWeb;
+    show TargetPlatform, defaultTargetPlatform, kIsWeb, kReleaseMode;
+
+void ensureDevFirebaseOptionsAllowed({bool releaseMode = kReleaseMode}) {
+  if (releaseMode) {
+    throw StateError(
+      'Release builds require real Firebase options; dev emulator placeholder '
+      'options must not be used.',
+    );
+  }
+}
 
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
