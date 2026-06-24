@@ -4,23 +4,31 @@ import '../../models/place.dart';
 
 // Repository quản lý danh sách điểm tham quan (attractions)
 class attractionListRepo {
+  attractionListRepo({FirebaseFirestore? firestore})
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
-  const attractionListRepo();
+  final FirebaseFirestore _firestore;
 
   // Lấy chi tiết 1 địa điểm tham quan qua placeId
   Future<Place> getAttractionDetailes(placeId) async {
-    final query = await FirebaseFirestore.instance
+    final query = await _firestore
         .collection('attractions')
         .where('placeId', isEqualTo: placeId)
+        .limit(1)
         .get();
 
-    Place data = Place.fromMap(query.docs[0].data());
+    if (query.docs.isEmpty) {
+      throw StateError('Attraction not found: $placeId');
+    }
+
+    Place data = Place.fromMap(query.docs.first.data());
     return data;
   }
 
   // Tìm kiếm các điểm tham quan theo input (title)
   Future<List<Place>> searchAttractions(input) async {
-    final query = await FirebaseFirestore.instance.collection("attractions")
+    final query = await _firestore
+        .collection("attractions")
         .orderBy('title')
         .startAt([input])
         .limit(5)
@@ -37,7 +45,7 @@ class attractionListRepo {
   // Lấy danh sách điểm tham quan trong 1 thành phố
   Future<List<Place>> getAttractionPlaces(placeName) async {
     print("→ [Repo] Lấy địa điểm tham quan cho thành phố: $placeName");
-    final query = await FirebaseFirestore.instance
+    final query = await _firestore
         .collection('attractions')
         .where('city', isEqualTo: placeName)
         .get();
@@ -52,20 +60,18 @@ class attractionListRepo {
 
   // Lấy danh sách review cho 1 địa điểm tham quan
   Future<List<Review>> getReviews(placeId) async {
-    var result;
     final List<Review> reviewsList = [];
     try {
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+      final querySnapshot = await _firestore
           .collection('attractions')
           .where('placeId', isEqualTo: placeId)
           .get();
       for (var ele in querySnapshot.docs) {
-        result = await ele.reference.collection('reviews').get();
-      }
-
-      for (var i = 0; i < result.docs.length; i++) {
-        var review = Review.fromMap(result.docs[i].data());
-        reviewsList.add(review);
+        final result = await ele.reference.collection('reviews').get();
+        for (var reviewDoc in result.docs) {
+          var review = Review.fromMap(reviewDoc.data());
+          reviewsList.add(review);
+        }
       }
     } catch (e) {
       print("Lỗi lấy review: $e");
@@ -75,34 +81,25 @@ class attractionListRepo {
   }
 
   // Thêm review cho địa điểm
-  Future<void> addReview(placeId, reviews, userId) async {
-    List<String> userIds = [];
+  Future<void> addReview({
+    required String placeId,
+    required List reviews,
+    required String userId,
+  }) async {
     try {
-      QuerySnapshot attractionsQuery = await FirebaseFirestore.instance.collection('attractions')
-          .where('placeId', isEqualTo: placeId).get();
+      QuerySnapshot attractionsQuery = await _firestore
+          .collection('attractions')
+          .where('placeId', isEqualTo: placeId)
+          .get();
 
       for (var ele in attractionsQuery.docs) {
-        var value = await FirebaseFirestore.instance.collection('attractions').doc(ele.id).get();
-        List<dynamic>? ids = value.data()?['userIds'];
-        if (ids != null) {
-          userIds.addAll(ids.cast<String>());
-        }
+        final data = ele.data() as Map<String, dynamic>;
+        final userIds = List.from(data['userIds'] as List? ?? []);
         if (!userIds.contains(userId)) {
           userIds.add(userId);
         }
-      }
 
-      for (var ele in attractionsQuery.docs) {
-        FirebaseFirestore.instance
-            .collection('attractions')
-            .doc(ele.id)
-            .update({'reviews': reviews});
-      }
-
-      for (var ele in attractionsQuery.docs) {
-        await FirebaseFirestore.instance.collection('attractions').doc(ele.id).update({
-          'userIds': userIds,
-        });
+        await ele.reference.update({'reviews': reviews, 'userIds': userIds});
       }
     } catch (e) {
       print("Lỗi thêm review: $e");
@@ -110,56 +107,44 @@ class attractionListRepo {
   }
 
   // Xóa review
-  Future<void> deleteReview(reviews, placeId, userId) async {
-    bool isUserFound = false;
-    List userIds = [];
+  Future<void> deleteReview({
+    required String placeId,
+    required List reviews,
+    required String userId,
+  }) async {
+    final hasRemainingReview = reviews.any((review) {
+      return _reviewUserId(review) == userId;
+    });
+
     try {
-      QuerySnapshot attractionsQuery = await FirebaseFirestore.instance.collection('attractions')
-          .where('placeId', isEqualTo: placeId).get();
+      QuerySnapshot attractionsQuery = await _firestore
+          .collection('attractions')
+          .where('placeId', isEqualTo: placeId)
+          .get();
 
       for (var ele in attractionsQuery.docs) {
-        FirebaseFirestore.instance
-            .collection('attractions')
-            .doc(ele.id)
-            .update({'reviews': reviews});
-      }
-
-      QuerySnapshot attractionsQuery2 = await FirebaseFirestore.instance.collection('attractions')
-          .where('placeId', isEqualTo: placeId).get();
-
-      for (var ele in attractionsQuery2.docs) {
-        reviews = ele.get("reviews");
-      }
-
-      for (var i = 0; i < reviews.length; i++) {
-        if (reviews[i]["userId"] == userId) {
-          isUserFound = true;
-          print("Tìm thấy userId trong reviews");
-          break;
-        } else {
-          isUserFound = false;
-        }
-      }
-
-      // Nếu không tìm thấy userId nữa thì loại khỏi userIds
-      if (isUserFound == false) {
-        for (var ele in attractionsQuery.docs) {
-          var value = await FirebaseFirestore.instance.collection('attractions').doc(ele.id).get();
-          List<dynamic>? ids = value.data()?['userIds'];
-          if (ids != null) {
-            userIds.addAll(ids);
-          }
+        final data = ele.data() as Map<String, dynamic>;
+        final userIds = List.from(data['userIds'] as List? ?? []);
+        if (!hasRemainingReview) {
           userIds.removeWhere((element) => element == userId);
         }
-        for (var ele in attractionsQuery.docs) {
-          await FirebaseFirestore.instance.collection('attractions').doc(ele.id).update({
-            'userIds': userIds,
-          });
-        }
+
+        await ele.reference.update({'reviews': reviews, 'userIds': userIds});
       }
     } catch (e) {
       print("Lỗi xóa review: $e");
     }
+  }
+
+  String? _reviewUserId(dynamic review) {
+    if (review is Review) {
+      return review.userId;
+    }
+    if (review is Map) {
+      final userId = review['userId'];
+      return userId is String ? userId : userId?.toString();
+    }
+    return null;
   }
 }
 

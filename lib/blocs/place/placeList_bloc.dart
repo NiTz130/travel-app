@@ -15,170 +15,156 @@ import '../../repositories/weather/weather_repo.dart';
 import 'place_event.dart';
 import 'place_state.dart';
 
+class placeListBloc extends Bloc<place_event, place_state> {
+  Future<Place> getPlaceDetailes(placeId, placeType) async {
+    late Place details;
 
-
-class placeListBloc  extends Bloc<place_event,place_state>{
-
-  Future<Place> getPlaceDetailes(placeId,placeType) async {
-   late Place details;
-   
-    if(placeType =='city'){
-        
-     details = await cityRep.getcityDetailes(placeId);
-
-    }else if(placeType =='attraction'){
-
-     details = await attractionListRep.getAttractionDetailes(placeId);
-
-    }else if(placeType =='restaurant'){
-
+    if (placeType == 'city') {
+      details = await cityRep.getcityDetailes(placeId);
+    } else if (placeType == 'attraction') {
+      details = await attractionListRep.getAttractionDetailes(placeId);
+    } else if (placeType == 'restaurant') {
       details = await restaurantRepo.getRestaurantDetails(placeId);
-
     }
-
-    
-    return  details;
-
-  }
-
-  Future <List<Place>>  searchPlaces(input,placeType) async {
-    
-    late List<Place> details;
-
-    if(placeType =='city'){
-        
-     details = await cityRep.searchCities(input);
-
-    }else if(placeType =='attraction'){
-
-     details = await attractionListRep.searchAttractions(input);
-
-    }else if(placeType =='restaurant'){
-
-      details = await restaurantRepo.searchRestaurants(input);
-
-    }
-
-    return  details;
-
-  }
-
-
-  Future <List<Place>> getplaces(String name,String placeType) async {
-
-    late List<Place> details;
-
-    if(placeType =='attraction'){
-      
-     details = await attractionListRep.getAttractionPlaces(name);
-
-    }else if(placeType =='restaurant'){
-
-      details = await restaurantRepo.getRestaurants(name);
-
-    }
-
 
     return details;
   }
 
-  Future <List> checkFavorites(data) async {
-    
+  Future<List<Place>> searchPlaces(input, placeType) async {
+    late List<Place> details;
+
+    if (placeType == 'city') {
+      details = await cityRep.searchCities(input);
+    } else if (placeType == 'attraction') {
+      details = await attractionListRep.searchAttractions(input);
+    } else if (placeType == 'restaurant') {
+      details = await restaurantRepo.searchRestaurants(input);
+    }
+
+    return details;
+  }
+
+  Future<List<Place>> getplaces(String name, String placeType) async {
+    late List<Place> details;
+
+    if (placeType == 'attraction') {
+      details = await attractionListRep.getAttractionPlaces(name);
+    } else if (placeType == 'restaurant') {
+      details = await restaurantRepo.getRestaurants(name);
+    }
+
+    return details;
+  }
+
+  Future<List> checkFavorites(data) async {
     final List isFavorites = await favRepo.checkFavorites(data);
-      
-      return isFavorites;
 
+    return isFavorites;
   }
 
-  Future <List<Favorite>> getFavorites() async {
-    
+  Future<List<Favorite>> getFavorites() async {
     final List<Favorite> Favorites = await favRepo.getFavorites();
-      
-      return Favorites;
 
+    return Favorites;
   }
 
-  Future <List> getWeather(lat,lng) async {
-
+  Future<List> getWeather(lat, lng) async {
     weatherRepo repo = weatherRepo(lat: lat, lng: lng);
 
-    List weatherData =await repo.findWeather();
+    List weatherData = await repo.findWeather();
 
     return weatherData;
   }
 
-  Future <List> getRoute (lat,lng) async {
-
-    DirectionsRepo repo = DirectionsRepo(lat: lat, lng:lng);
+  Future<List> getRoute(lat, lng) async {
+    DirectionsRepo repo = DirectionsRepo(lat: lat, lng: lng);
     List directionData = await repo.calculateDistance();
 
     return directionData;
-
   }
 
   Future<List<Place>> getUserRecentlySearch() async {
-
     List<Place> details = await cityRep.getUserRecentlySearch();
-    
+
     return details;
   }
 
-  Future<List<Review>> getReviewList(placeType,placeId) async {
-
+  Future<List<Review>> getReviewList(placeType, placeId) async {
     late List<Review> reviewList;
 
-    if(placeType =='attraction') {
-      reviewList =await attractionListRep.getReviews(placeId);
-    }else if (placeType =='restaurant'){
+    if (placeType == 'attraction') {
+      reviewList = await attractionListRep.getReviews(placeId);
+    } else if (placeType == 'restaurant') {
       reviewList = await restaurantRepo.getReviews(placeId);
     }
 
     return reviewList;
-    
   }
 
-  placeListBloc ():super(InitialPlaceState()){
-
+  placeListBloc() : super(InitialPlaceState()) {
     on<place_event>((event, emit) async {
-      
-      if(event is placeAddToFavorites){
-
-      print('this is addToFavorites');
-      bool isAdd =await favRepo.addToFavorite(Favorite(placeId: event.atPlaceId, placeName: event.placeName, placePhotoUrl: event.placeImgUrl, placeType: event.type,));
-      emit(placeAddToFavoriteState(isAdd,));  
-
-      }else if(event is placeRemoveFromFavorites){
-
+      if (event is placeAddToFavorites) {
+        print('this is addToFavorites');
+        bool isAdd = await favRepo.addToFavorite(
+          Favorite(
+            placeId: event.atPlaceId,
+            placeName: event.placeName,
+            placePhotoUrl: event.placeImgUrl,
+            placeType: event.type,
+          ),
+        );
+        emit(placeAddToFavoriteState(isAdd));
+      } else if (event is placeRemoveFromFavorites) {
         print("this is removeFavorite");
-        bool isRemove =await favRepo.removeFavorite(event.atPlaceId);
+        bool isRemove = await favRepo.removeFavorite(event.atPlaceId);
         emit(placeRemoveFromFavoriteState(isRemove));
-
-      }else if(event is addUserRecentlySearch){
-
-        if(event.type=='locality'){
-
-         await cityRep.addUserRecentlySearch(Place(id: event.id, name: event.name, photoRef: event.photoRef,
-           rating:0.0, address: event.address, type: event.type, phone: event.phone,
-            openingHours: event.openingHours, latitude: event.latitude, longitude: event.longitude, reviews: []));
+      } else if (event is addUserRecentlySearch) {
+        if (event.type == 'locality') {
+          await cityRep.addUserRecentlySearch(
+            Place(
+              id: event.id,
+              name: event.name,
+              photoRef: event.photoRef,
+              rating: 0.0,
+              address: event.address,
+              type: event.type,
+              phone: event.phone,
+              openingHours: event.openingHours,
+              latitude: event.latitude,
+              longitude: event.longitude,
+              reviews: [],
+            ),
+          );
         }
-        
-      }else if(event is addReviewEvent){
-        if(event.placeType =='attraction') {
-          await attractionListRep.addReview(event.placeId,event.reviews,event.userId);
-        }else if(event.placeType =='restaurant'){
-          await restaurantRepo.addReview(event.placeId,event.reviews);
+      } else if (event is addReviewEvent) {
+        if (event.placeType == 'attraction') {
+          await attractionListRep.addReview(
+            placeId: event.placeId,
+            reviews: event.reviews,
+            userId: event.userId,
+          );
+        } else if (event.placeType == 'restaurant') {
+          await restaurantRepo.addReview(
+            placeId: event.placeId,
+            reviews: event.reviews,
+          );
         }
-      }else if (event is deleteReviewEvent){
-
-        if(event.placeType =='attraction') {
-          await attractionListRep.deleteReview(event.placeId,event.reviews,event.userId);
-        }
-        else if(event.placeType =='restaurant'){
-          await restaurantRepo.deleteReview(event.placeId,event.reviews);
+      } else if (event is deleteReviewEvent) {
+        if (event.placeType == 'attraction') {
+          await attractionListRep.deleteReview(
+            placeId: event.placeId,
+            reviews: event.reviews,
+            userId: event.userId,
+          );
+        } else if (event.placeType == 'restaurant') {
+          await restaurantRepo.deleteReview(
+            placeId: event.placeId,
+            reviews: event.reviews,
+          );
         }
       }
-    },);
+    });
   }
 }
 
-final placeBloc = placeListBloc ();
+final placeBloc = placeListBloc();
