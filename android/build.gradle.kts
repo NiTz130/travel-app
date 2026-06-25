@@ -15,6 +15,18 @@ subprojects {
 subprojects {
     project.evaluationDependsOn(":app")
 }
+subprojects {
+    configurations.configureEach {
+        resolutionStrategy.eachDependency {
+            if (requested.group == "androidx.core" &&
+                (requested.name == "core" || requested.name == "core-ktx")
+            ) {
+                useVersion("1.16.0")
+                because("AndroidX Core 1.18 requires compileSdk 36; this project builds with SDK 35.")
+            }
+        }
+    }
+}
 
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
