@@ -13,7 +13,7 @@
 
 ## 📸 Demo
 
-> Emulator screenshots will be added later. Drop files into `docs/screenshots/` and reference them here when ready.
+> Screenshots will be added later.
 
 ---
 
