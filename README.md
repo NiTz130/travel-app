@@ -13,13 +13,7 @@
 
 ## 📸 Demo
 
-> Add emulator screenshots to `docs/screenshots/` and update the links below.
-
-```markdown
-![Home](docs/screenshots/home.png)
-![Trip Detail](docs/screenshots/trip-detail.png)
-![Map](docs/screenshots/map.png)
-```
+> Emulator screenshots will be added later. Drop files into `docs/screenshots/` and reference them here when ready.
 
 ---
 
